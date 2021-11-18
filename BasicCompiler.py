@@ -53,7 +53,7 @@ class Position:
         self.line = line
         self.column = column
 
-    def advance(self, current_char):
+    def advance(self, current_char=None):
         self.index += 1
         self.column += 1
         if current_char == '\n':
@@ -131,12 +131,7 @@ class Lexer:
             return Token(TOKEN_FLOAT, float(num_str))
 
 
-# RUN
-def run(text):
-    lexer = Lexer(text)
-    tokens, error = lexer.make_tokens()
 
-    return tokens, error
 
 
 #NODES
@@ -160,5 +155,56 @@ class BinaryOpNode:
 
 
 # PARSER 
+class Parser:
+    def __init__(self, tokens): 
+        self.tokens = tokens
+        self.tok_index = -1
+        self.advance()
+
+    def advance(self, ):
+        self.tok_index += 1
+        if self.tok_index < len(self.tokens):
+            self.current_tok = self.tokens[self.tok_index]
+        return self.current_tok
+
+    
+    def parse(self):
+        res = self.expression()
+        return res
+
+    def factor(self):
+        tok = self.current_tok
+
+        if tok.type in (TOKEN_INT, TOKEN_FLOAT):
+            self.advance()
+            return NumberNode(tok)
+
+    def term(self):
+       return self.bin_op(self.factor, (TOKEN_MUL, TOKEN_DIV))
+
+    def expression(self):
+        return self.bin_op(self.term, (TOKEN_PLUS, TOKEN_MINUS))
+
+    def bin_op(self, func, ops):
+        left = func()
+
+        while self.current_tok.type in ops:
+            op_tok = self.current_tok
+            self.advance()
+            right = func()
+            left = BinaryOpNode(left, op_tok, right)
+        
+        return left
 
 
+# RUN
+def run(text):
+    lexer = Lexer(text)
+    tokens, error = lexer.make_tokens()
+    if error: return None, error
+
+    #GENERATE AST
+    parser = Parser(tokens)
+    ast = parser.parse()
+
+    return ast, error
