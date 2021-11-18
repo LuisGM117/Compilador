@@ -14,7 +14,9 @@ TOKEN_LEFTPAREN     = 'LEFTPAREN' # (
 TOKEN_RIGHTPAREN    = 'RIGHTPAREN' # )
 
 class Error:
-    def __init__(self, error_name, details):
+    def __init__(self, start, end, error_name, details):
+        self.start = start
+        self.end = end
         self.error_name = error_name
         self.details = details
 
@@ -23,8 +25,8 @@ class Error:
         return result
 
 class illegalCharError(Error):
-    def __init__(self, details):
-        super().__init__('Illegal Character', details )
+    def __init__(self, start, end, details):
+        super().__init__(start, end,'Illegal Character', details )
 
 
 
@@ -41,18 +43,39 @@ class Token:
         else:
             return f'{self.type}'
 
+#POSITION
+#A class to indicate the exactly place of the errors 
+#Also will help the Parser Class
+
+class Position:
+    def __init__(self, index, line, column):
+        self.index = index
+        self.line = line
+        self.column = column
+
+    def advance(self, current_char):
+        self.index += 1
+        self.column += 1
+        if current_char == '\n':
+            self.line += 1
+            self.column = 0
+        return self
+
+    def copyPosition(self):
+        return Position(self.index, self.line, self.column)
+
 
 #LEXER
 class Lexer:
     def __init__(self, text):
         self.text = text
-        self.pos = -1
+        self.pos = Position(-1, 0, -1)
         self.current_char = None
         self.advance()
 
     def advance(self):
-        self.pos += 1
-        self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
+        self.pos.advance(self.current_char)
+        self.current_char = self.text[self.pos.index] if self.pos.index < len(self.text) else None
 
     def make_tokens(self):
         tokens = []
@@ -81,9 +104,10 @@ class Lexer:
                 tokens.append(Token(TOKEN_RIGHTPAREN))
                 self.advance()
             else:
+                start = self.pos.copyPosition()
                 char = self.current_char 
                 self.advance()
-                return [], illegalCharError(char)
+                return [], illegalCharError(start, self.pos, char)
 
         return tokens, None
 
@@ -113,3 +137,28 @@ def run(text):
     tokens, error = lexer.make_tokens()
 
     return tokens, error
+
+
+#NODES
+
+class NumberNode:
+    def __init__(self, tok): 
+        self.tok = tok
+    
+    def __repr__(self):
+        return f'{self.tok}'
+
+class BinaryOpNode:
+    def __init__(self, left_node, op_tok, right_node):
+        self.left_node  = left_node
+        self.op_tok = op_tok
+        self.right_node = right_node
+
+    def __repr__(self):
+        return f'({self.left_node}, {self.op_tok}, {self.right_node})'
+    
+
+
+# PARSER 
+
+
