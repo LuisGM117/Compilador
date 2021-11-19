@@ -37,6 +37,8 @@ class CompilerSyntaxError(Error):
 
 
 
+
+
 # TOKENS
 # TOKENS --> type - value (optional)
 class Token:
@@ -280,8 +282,11 @@ class Parser:
         return res.success(left) 
 
 
-#PARSE RESULT 
 
+
+
+
+#PARSE RESULT 
 class ParseResult:
     def __init__(self):
         self.error = None
@@ -416,6 +421,11 @@ class Interpreter:
             return res.failure(error)
         else:
             return res.success(result.set_pos(node.start, node.end))
+
+
+
+
+
 
 # RUN
 def run(text):
