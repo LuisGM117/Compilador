@@ -7,6 +7,7 @@ TOKEN_PLUS          = 'PLUS' # +
 TOKEN_MINUS         = 'MINUS' # -
 TOKEN_MUL           = 'MUL' # *
 TOKEN_DIV           = 'DIV' # /
+TOKEN_POW           = 'POW' # ^
 TOKEN_LEFTPAREN     = 'LEFTPAREN' # (
 TOKEN_RIGHTPAREN    = 'RIGHTPAREN' # )
 TOKEN_EOF           = 'EOF' # End Of File
@@ -124,7 +125,10 @@ class Lexer:
                 self.advance() 
             elif self.current_char == '/':
                 tokens.append(Token(TOKEN_DIV, start = self.pos))
-                self.advance() 
+                self.advance()
+            elif self.current_char == '^':
+                tokens.append(Token(TOKEN_POW, start = self.pos))
+                self.advance()  
             elif self.current_char == '(':
                 tokens.append(Token(TOKEN_LEFTPAREN, start = self.pos))
                 self.advance() 
@@ -218,7 +222,8 @@ class Parser:
                 "Expected a character: '+' || '-' || '*' || '/' between numbers "))
         return res
 
-    def factor(self):
+
+    def atom(self):
         res = ParseResult()
         tok = self.current_tok
 
@@ -236,9 +241,19 @@ class Parser:
             else:
                 return res.failure(CompilerSyntaxError(self.current_tok.start, self.current_tok.end,
                  "Expected ')' "))
+        
+        return res.failure(CompilerSyntaxError(self.current_tok.start, self.current_tok.end, 
+                "Expected a character: '+' || '-' || '*' || '/' between numbers "))
+        
+    def power(self):
+        return self.bin_op(self.atom, (TOKEN_POW, ), self.factor)
 
-        return res.failure(CompilerSyntaxError(self.current_tok.start, self.current_tok.end,
-         "Check if you have entered all parameters"))
+    def factor(self):
+        res = ParseResult()
+        tok = self.current_tok
+
+
+        return self.power()
 
         
 
@@ -248,15 +263,17 @@ class Parser:
     def expression(self):
         return self.bin_op(self.term, (TOKEN_PLUS, TOKEN_MINUS))
 
-    def bin_op(self, func, ops):
+    def bin_op(self, funca, ops, funcb=None):
+        if funcb == None:
+            funcb = funca
         res = ParseResult()
-        left = res.register(func())
+        left = res.register(funca())
         if res.error: return res
 
         while self.current_tok.type in ops:
             op_tok = self.current_tok
             res.register(self.advance())
-            right = res.register(func())
+            right = res.register(funcb())
             if res.error: return res
             left = BinaryOpNode(left, op_tok, right)
         
@@ -286,6 +303,32 @@ class ParseResult:
         return self
 
 
+
+
+
+class RuntimeResult:
+    def __init__(self):
+        self.value = None
+        self.error = None
+
+    def register(self, res):
+        if res.error: 
+            self.error = res.error
+        return res.value
+
+    def success(self, value):
+        self.value = value
+        return self
+
+    def failure(self, error):
+        self.error = error
+        return self
+
+
+
+
+
+
 #NUMBER CLASS 
 #TO GET ACTUAL VALUES
 class Number:
@@ -302,22 +345,36 @@ class Number:
 
     def added_to(self, other): 
         if isinstance(other, Number): 
-            return Number(self.value + other.value)
+            return Number(self.value + other.value), None
     
     def subbed_by(self, other):
         if isinstance(other, Number):
-            return Number(self.value - other.value)
+            return Number(self.value - other.value), None
 
     def multed_by(self, other):
         if isinstance(other, Number):
-            return Number(self.value * other.value)
+            return Number(self.value * other.value), None
 
     def divided_by(self, other):
         if isinstance(other, Number):
-            return Number(self.value / other.value)
+            if other.value == 0:
+                print("You can't divided by zero")
+            return Number(self.value / other.value), None
+    
+    def powed_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value ** other.value), None
 
     def __repr__(self):
         return str(self.value)
+
+
+
+
+
+
+
+
 
 #INTERPRETER
 #MAKE OPERATIONS AND PRINT THE RESULT
@@ -333,22 +390,33 @@ class Interpreter:
 
 
     def visit_NumberNode(self, node):
-        return Number(node.tok.value).set_pos(node.start, node.end)
+        return RuntimeResult().success(Number(node.tok.value).set_pos(node.start, node.end))  
 
     def visit_BinaryOpNode(self, node):
-        left = self.visit(node.left_node)
-        right = self.visit(node.right_node)
+        res = RuntimeResult()
+        left = res.register(self.visit(node.left_node))
+        if res.error:
+            return res
+        right = res.register(self.visit(node.right_node))
+        if res.error:
+            return res
 
         if node.op_tok.type == TOKEN_PLUS:
-            result = left.added_to(right)
+            result, error = left.added_to(right)
         elif node.op_tok.type == TOKEN_MINUS:
-            result = left.subbed_by(right)
+            result, error = left.subbed_by(right)
         elif node.op_tok.type == TOKEN_MUL:
-            result = left.multed_by(right)
+            result, error = left.multed_by(right)
         elif node.op_tok.type == TOKEN_DIV:
-            result = left.divided_by(right)
+            result, error = left.divided_by(right)
+        elif node.op_tok.type == TOKEN_POW:
+            result, error = left.powed_by(right)
 
-        return result.set_pos(node.start, node.end)
+        if error:
+            return res.failure(error)
+        else:
+            return res.success(result.set_pos(node.start, node.end))
+
 # RUN
 def run(text):
     lexer = Lexer(text)
@@ -364,4 +432,4 @@ def run(text):
     interpreter = Interpreter()
     result = interpreter.visit(ast.node)
 
-    return result, None
+    return result.value, result.error
