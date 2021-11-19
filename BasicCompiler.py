@@ -1,10 +1,4 @@
-# TOKENS
-# TOKENS --> type - value (optional)
-
 # ADD CONSTANTS
-
-
-
 DIGITS = '0123456789'
 
 TOKEN_INT           = 'INT'
@@ -17,6 +11,10 @@ TOKEN_LEFTPAREN     = 'LEFTPAREN' # (
 TOKEN_RIGHTPAREN    = 'RIGHTPAREN' # )
 TOKEN_EOF           = 'EOF' # End Of File
 
+
+
+#HANDLE ERROR 
+#SYNTAX AND ILLEGAL CHARACTER
 class Error:
     def __init__(self, start, end, error_name, details):
         self.start = start
@@ -38,11 +36,8 @@ class CompilerSyntaxError(Error):
 
 
 
-
-
-
-
-
+# TOKENS
+# TOKENS --> type - value (optional)
 class Token:
     def __init__(self, type_, value=None, start=None, end=None):
         self.type = type_
@@ -171,7 +166,6 @@ class Lexer:
 
 
 #NODES
-
 class NumberNode:
     def __init__(self, tok): 
         self.tok = tok
@@ -286,6 +280,10 @@ class ParseResult:
     def failure(self, error):
         self.error = error
         return self
+
+
+
+        
 
 # RUN
 def run(text):
