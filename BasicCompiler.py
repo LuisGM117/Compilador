@@ -169,6 +169,8 @@ class Lexer:
 class NumberNode:
     def __init__(self, tok): 
         self.tok = tok
+        self.start = self.tok.start
+        self.end = self.tok.end
     
     def __repr__(self):
         return f'{self.tok}'
@@ -178,6 +180,8 @@ class BinaryOpNode:
         self.left_node  = left_node
         self.op_tok = op_tok
         self.right_node = right_node
+        self.start = self.left_node.start
+        self.end = self.right_node.end
 
     def __repr__(self):
         return f'({self.left_node}, {self.op_tok}, {self.right_node})'
@@ -282,9 +286,69 @@ class ParseResult:
         return self
 
 
+#NUMBER CLASS 
+#TO GET ACTUAL VALUES
+class Number:
+    def __init__(self, value):
+        self.value = value
+        self.set_pos()
+    
+    def set_pos(self, start = None, end = None ):
+        self.start = start
+        self.end = end
+        return self
 
-        
+    #isinstance return true if two parameters are the same type or same objects    
 
+    def added_to(self, other): 
+        if isinstance(other, Number): 
+            return Number(self.value + other.value)
+    
+    def subbed_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value - other.value)
+
+    def multed_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value * other.value)
+
+    def divided_by(self, other):
+        if isinstance(other, Number):
+            return Number(self.value / other.value)
+
+    def __repr__(self):
+        return str(self.value)
+
+#INTERPRETER
+#MAKE OPERATIONS AND PRINT THE RESULT
+
+class Interpreter:
+    def visit(self, node):
+        method_name = f'visit_{type(node).__name__}'
+        method = getattr(self, method_name, self.no_visit_method)
+        return method(node)
+
+    def no_visit_method(self, node):
+        raise Exception(f'No visit_{type(node).__name__} method defined')
+
+
+    def visit_NumberNode(self, node):
+        return Number(node.tok.value).set_pos(node.start, node.end)
+
+    def visit_BinaryOpNode(self, node):
+        left = self.visit(node.left_node)
+        right = self.visit(node.right_node)
+
+        if node.op_tok.type == TOKEN_PLUS:
+            result = left.added_to(right)
+        elif node.op_tok.type == TOKEN_MINUS:
+            result = left.subbed_by(right)
+        elif node.op_tok.type == TOKEN_MUL:
+            result = left.multed_by(right)
+        elif node.op_tok.type == TOKEN_DIV:
+            result = left.divided_by(right)
+
+        return result.set_pos(node.start, node.end)
 # RUN
 def run(text):
     lexer = Lexer(text)
@@ -294,5 +358,10 @@ def run(text):
     #GENERATE AST
     parser = Parser(tokens)
     ast = parser.parse()
+    if ast.error: return None, ast.error
 
-    return ast.node, ast.error
+    #RUN PROGRAM
+    interpreter = Interpreter()
+    result = interpreter.visit(ast.node)
+
+    return result, None
