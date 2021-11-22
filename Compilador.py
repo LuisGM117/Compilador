@@ -3,7 +3,7 @@ import BasicCompiler
 
 while True:
     text = input('$ ')
-    result, error = BasicCompiler.run(text)
+    result, error = BasicCompiler.run('<stdin>', text)
 
     if error: 
         print(error.as_string())
