@@ -22,7 +22,6 @@ TOKEN_KEYWORD       = 'KEYWORD'
 TOKEN_EQUALS        = 'EQUALS' # =
 
 # ADD TOKENS FOR COMPARISON
-
 TOKEN_2EQUALS       = 'EE' # ==
 TOKEN_NOTEQUALS     = 'NE' # != 
 TOKEN_LESSTHAN      = 'LT' # <
