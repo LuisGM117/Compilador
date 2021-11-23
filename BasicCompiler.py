@@ -30,7 +30,7 @@ TOKEN_LTE           = 'LTE' # ≤
 TOKEN_GTE           = 'GTE' # ≥ 
  
 
-KEYWORDS = ['VAR', 'AND', 'OR'] 
+KEYWORDS = ['VAR', 'AND', 'OR', 'IF', 'ELIF', 'ELSE'] 
 
 
 
@@ -374,6 +374,11 @@ class Parser:
             else:
                 return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end,
                  "Expected ')' "))
+
+        elif tok.matches(TOKEN_KEYWORD, 'IF'):
+            if_expr = res.register(self.if_expression())
+            if res.error: return res
+            return res.success(if_expr)
         
         return res.failure(CompilerSyntaxError(tok.pos_start, tok.pos_end, 
                 "Expected int, float, identifier, \n or a character: '+' || '-' || '*' || '/' between numbers "))
@@ -395,6 +400,39 @@ class Parser:
         return self.power()
 
         
+
+    def if_expression(self):
+        res = ParseResult()
+        cases  = []
+        else_case = None
+
+        if not self.current_tok.matches(TOKEN_KEYWORD, 'IF'):
+            return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected 'IF' conditional"))
+        res.register_advancement()
+        self.advance()
+
+        condition = res.register(self.expression())
+        if res.error: return res
+
+        expr = res.register(self.expression())
+        if res.error: return res
+        cases.append((condition, expr))
+
+
+        while self.current_tok.matches(TOKEN_KEYWORD, 'ELIF'):
+            res.register_advancement()
+            self.advance()
+
+            condition = res.register(self.expression())
+            if res.error: return res
+
+            res.register_advancement()
+            self.advance()
+
+            expr = res.register(self.expression())
+            if res.error: return res
+            cases.append((condition, expr))
 
     def term(self):
        return self.bin_op(self.factor, (TOKEN_MUL, TOKEN_DIV))
