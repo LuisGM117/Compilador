@@ -1021,4 +1021,12 @@ def run(filename, text):
     context.symbol_table = global_symbolTable
     result = interpreter.visit(ast.node, context)
 
+    f = open("levels.txt", "wt")
+
+    f.write(str(tokens) + " ")
+
+
+    f.close()
+    # print(tokens)
+
     return result.value, result.error
