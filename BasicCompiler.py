@@ -5,6 +5,8 @@ DIGITS = '0123456789'
 LETTERS = string.ascii_letters # a-z letters
 LETTERS_DIGITS = LETTERS + DIGITS
 
+
+#CONSTANTS FOR THE DIFFERENT TOKEN TYPES
 TOKEN_INT           = 'INT'
 TOKEN_FLOAT         = 'FLOAT'
 TOKEN_PLUS          = 'PLUS' # +
@@ -155,8 +157,8 @@ class Lexer:
     def make_tokens(self):
         tokens = []
 
-        while self.current_char != None:
-            if self.current_char in ' \t': 
+        while self.current_char != None: #end of the sentence
+            if self.current_char in ' \t': #ignore spaces and tabs
                 self.advance()
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
@@ -211,7 +213,7 @@ class Lexer:
             return Token(TOKEN_NOTEQUALS, pos_start = pos_start, pos_end = self.pos), None
         
         self.advance()
-        return None, CompilerSyntaxError(pos_start, self.pos, "Expected = ")
+        return None, CompilerSyntaxError(pos_start, self.pos, "Expected != ")
 
     def make_equals(self):
         tok_type = TOKEN_EQUALS
@@ -251,10 +253,10 @@ class Lexer:
     def make_number(self):
         num_str = ''
         dot_count = 0 
-        #To check if is an integer or a float number
 
         pos_start = self.pos.copyPosition()
 
+        #To check if is an integer or a float number
         while self.current_char != None and self.current_char in DIGITS + '.':
             if self.current_char == '.':  
                 if dot_count == 1:  break
@@ -425,6 +427,8 @@ class Parser:
     def power(self):
         return self.bin_op(self.atom, (TOKEN_POW, ), self.factor)
 
+
+    #Check for an integer or a float
     def factor(self):
         res = ParseResult()
         tok = self.current_tok
@@ -804,6 +808,7 @@ class Number:
 
 #Symboll table
 #For variables!
+#Will keep track the variables names and their values
 
 class SymbolTable:
     def __init__(self):
@@ -825,6 +830,7 @@ class SymbolTable:
 
 
 #CONTEXT CLASS
+#HOLD THE CURRENT CONTEXT, IN THIS CASE WILL BE THE ENTIRE PROGRAM
 #ALSO WILL HELP VARIABLES
 
 class Context:
@@ -839,7 +845,8 @@ class Context:
 
 
 #INTERPRETER
-#MAKE OPERATIONS AND PRINT THE RESULT
+#PRINT THE RESULT VISITING THE DIFFERENT NODES
+#NEED HELP OF NUMBER CLASS
 
 class Interpreter:
     def visit(self, node, context):
@@ -1010,7 +1017,7 @@ def run(filename, text):
     tokens, error = lexer.make_tokens()
     if error: return None, error
 
-    #GENERATE AST
+    #GENERATE ABSTRACT SYNTAX TREE
     parser = Parser(tokens)
     ast = parser.parse()
     if ast.error: return None, ast.error
