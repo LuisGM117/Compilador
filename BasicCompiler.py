@@ -30,7 +30,7 @@ TOKEN_LTE           = 'LTE' # ≤
 TOKEN_GTE           = 'GTE' # ≥ 
  
 
-KEYWORDS = ['VAR', 'AND', 'OR', 'IF', 'THEN', 'ELIF', 'ELSE'] 
+KEYWORDS = ['VAR', 'AND', 'OR', 'IF', 'THEN', 'ELIF', 'ELSE', 'FOR', 'TO', 'STEP', 'WHILE'] 
 
 
 
@@ -131,7 +131,6 @@ class Position:
 
     def copyPosition(self):
         return Position(self.index, self.line, self.column, self.filename, self.filetext)
-
 
 
 
@@ -326,6 +325,29 @@ class IfNode:
 
 
 
+class ForNode:
+    def __init__(self, var_name_tok, start_value_node, end_value_node, step_value_node, body_node)
+        self.var_name_tok = var_name_tok
+        self.start_value_node = start_value_node
+        self.end_value_node = end_value_node
+        self.step_value_node = step_value_node
+        self.body_node = body_node
+
+        self.pos_start = self.var_name_tok.pos_start
+        self.pos_end = self.body_node.pos_end
+
+
+class While:
+    def __init__(self, condition_node, body_node):
+        self.condition_node = condition_node
+        self.body_node = body_node
+
+        self.pos_start = self.condition_node.pos_start
+        self.pos_end = self.body_node.pos_end
+
+
+
+
 
 
 
@@ -387,6 +409,16 @@ class Parser:
             if res.error: return res
             return res.success(if_expr)
         
+        elif tok.matches(TOKEN_KEYWORD, 'FOR'):
+            for_expr = res.register(self.for_expr())
+            if res.error: return res
+            return res.success(for_expr)
+
+        elif tok.matches(TOKEN_KEYWORD, 'WHILE'):
+            while_expr = res.register(self.while_expr())
+            if res.error: return res
+            return res.success(while_expr)
+
         return res.failure(CompilerSyntaxError(tok.pos_start, tok.pos_end, 
                 "Expected int, float, identifier, \n or a character: '+' || '-' || '*' || '/' between numbers "))
         
