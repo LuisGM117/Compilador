@@ -495,6 +495,68 @@ class Parser:
 
         return res.success(IfNode(cases, else_case))
 
+
+
+    def for_expr(self):
+        res = ParseResult()
+
+        if not self.current_tok.matches(TOKEN_KEYWORD, 'FOR'):
+            return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end,
+            "Expected 'FOR' "))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type != TOKEN_IDENTIFIER:
+            return res.failure(CompilerSyntaxError(self.current_tok_pos_start, self.current_tok.pos_end,
+            "Expected identifier"))
+
+        var_name = self.current_tok
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type != TOKEN_EQUALS:
+            return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, 
+            "Expected = "))
+
+        res.register_advancement()
+        self.advance()
+
+        start_value = res.register(self.expression())
+        if res.error:
+            return res
+
+        if not self.current_tok.matches(TOKEN_KEYWORD, 'TO'):
+            return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, 
+            "Expected TO "))
+
+        res.register_advancement()
+        self.advance()
+
+        end_value = res.register(self.expression())
+        if res.error:
+            return res
+
+        if self.current_tok.matches(TOKEN_KEYWORD, 'STEP'):
+            res.register_advancement()
+            self.advance()
+
+            step_value = res.register(self.expression())
+            if res.error: 
+                return res
+        else: 
+            step_value = None
+
+        if not self.current_tok.matches(TOKEN_KEYWORD, 'THEN'):
+            return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, 
+            "Expected THEN"))
+
+        res.register_advancement()
+        self.advance()
+
+
+
+
     def term(self):
        return self.bin_op(self.factor, (TOKEN_MUL, TOKEN_DIV))
 
