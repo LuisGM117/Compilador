@@ -326,7 +326,7 @@ class IfNode:
 
 
 class ForNode:
-    def __init__(self, var_name_tok, start_value_node, end_value_node, step_value_node, body_node)
+    def __init__(self, var_name_tok, start_value_node, end_value_node, step_value_node, body_node):
         self.var_name_tok = var_name_tok
         self.start_value_node = start_value_node
         self.end_value_node = end_value_node
@@ -337,7 +337,7 @@ class ForNode:
         self.pos_end = self.body_node.pos_end
 
 
-class While:
+class WhileNode:
     def __init__(self, condition_node, body_node):
         self.condition_node = condition_node
         self.body_node = body_node
@@ -544,6 +544,7 @@ class Parser:
             step_value = res.register(self.expression())
             if res.error: 
                 return res
+
         else: 
             step_value = None
 
@@ -554,8 +555,37 @@ class Parser:
         res.register_advancement()
         self.advance()
 
+        body = res.register(self.expression())
+        if res.error:
+            return res
 
+        return res.success(ForNode(var_name, start_value, end_value, step_value, body))
 
+    def while_expr(self):
+        res = ParseResult()
+
+        if not self.current_tok.matches(TOKEN_KEYWORD, 'WHILE'):
+            return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, 
+            "Expected WHILE "))
+
+        res.register_advancement()
+        self.advance()
+
+        condition = res.register(self.expression())
+        if res.error:
+            return res
+        
+        if not self.current_tok.matches(TOKEN_KEYWORD, 'THEN'):
+            return res.failure(CompilerSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, 
+            "Expected THEN"))
+
+        res.register_advancement()
+        self.advance()
+
+        body = res.register(self.expression())
+        if res.error: return res
+
+        return res.success(WhileNode(condition, body))
 
     def term(self):
        return self.bin_op(self.factor, (TOKEN_MUL, TOKEN_DIV))
@@ -920,12 +950,59 @@ class Interpreter:
 
         return res.success(None)
 
+    def visit_ForNode(self, node, context):
+        res = RuntimeResult()
+
+        start_value = res.register(self.visit(node.start_value_node, context))
+        if res.error: return res
+
+        end_value = res.register(self.visit(node.end_value_node, context))
+        if res.error: return res
+
+        if node.step_value_node:
+            step_value = res.register(self.visit(node.step_value_node, context))
+            if res.error: return res
+        else: 
+            step_value = Number(1)
+        
+        i = start_value.value
+
+        if step_value.value >= 0:
+            condition = lambda: i < end_value.value
+        else:
+            condition = lambda: i > end_value.value
+
+        while condition():
+            context.symbol_table.set(node.var_name_tok.value, Number(i))
+            i += step_value.value
+            res.register(self.visit(node.body_node, context))
+            if res.error:
+                return res
+
+        return res.success(None)
+
+    def visit_WhileNode(self, node, context):
+        res = RuntimeResult()
+
+        while True:
+            condition = res.register(self.visit(node.condition_node, context))
+            if res.error: return res
+
+            if not condition.is_true(): break
+
+            res.register(self.visit(node.body_node, context))
+            if res.error:
+                return res
+        
+        return res.success(None) 
 
 
 
 
 global_symbolTable = SymbolTable()
-global_symbolTable.set("null", Number(0))
+global_symbolTable.set("NULL", Number(0))
+global_symbolTable.set("FALSE", Number(0))
+global_symbolTable.set("TRUE", Number(1))
 
 # RUN
 def run(filename, text):
