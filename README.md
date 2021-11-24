@@ -57,7 +57,7 @@ $ `0` que significa falso
 
 ## Booleans
 
-$ `<var_name> AND | OR <var_name2>`
+$ `<var_name>  <compar_expr>  <var_name2>  AND | OR  <varname1> <compar_expr> <var_name2>`
 
 $ `a > b AND a < 117`
 
@@ -75,7 +75,7 @@ $ `IF <condition> THEN <expresssion> ELIF <condition> THEN <expresion>`
 $ `FOR i = 1 TO 6 THEN VAR result = result * i`
 
 
-**WHILE**S
+**WHILE**
 
 $ `WHILE <condition> THEN <expresion>`
 
@@ -87,8 +87,10 @@ $ `WHILE i < 10000 THEN VAR i = i + 1`
 
 $ `i`
 
----
+$ `10000`
 
+---
+---
 ## Repositorio para el proyecto final de la materia de Compiladores.
 
 
