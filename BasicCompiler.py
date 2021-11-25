@@ -32,6 +32,7 @@ TOKEN_LTE           = 'LTE' # ≤
 TOKEN_GTE           = 'GTE' # ≥ 
  
 
+# NECESARY FOR VARIABLES, CONDITIONALES, BOOLEANS AND CYCLES
 KEYWORDS = ['VAR', 'AND', 'OR', 'IF', 'THEN', 'ELIF', 'ELSE', 'FOR', 'TO', 'STEP', 'WHILE'] 
 
 

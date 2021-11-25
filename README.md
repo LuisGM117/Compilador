@@ -61,7 +61,7 @@ $ `<var_name>  <compar_expr>  <var_name2>  AND | OR  <varname1> <compar_expr> <v
 
 $ `a > b AND a < 117`
 
-$ 1 que significa verdadero
+$ `1` que significa verdadero
 
 
 ## Condicionales
