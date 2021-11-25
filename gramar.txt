@@ -1,0 +1,52 @@
+expresion: 
+    KEYWORD: VAR IDENTIFIER EQ expr
+    comparison-expr (AND | OR) comparison-expr
+
+comparison-expr:   
+    arithmetic-expr ((comparison)) arithmetic-expr
+    
+
+arithmetic-expr:
+    term ( + | -) term
+
+
+term: 
+    factor (mul | div) factor
+
+factor:
+    (PLUS | MINUS) factor
+    power
+
+power: 
+    atom (Pow factor)
+
+atom:
+    INT | FLOAT | IDENTIFIER
+    LEFTPAREN expr RPAREN
+    IF expr
+
+IF expr:
+    IF expr THEN expr
+    ELIF expr THEN expr
+    ELSE expr 
+
+FOR expr:
+    FOR IDENTIFIER EQUALS expr TO expr
+
+WHILE expr:
+    WHILE expr THEN expr
+
+
+
+
+
+
+VAR     variable_name   =   expr
+ ^            ^         ^
+KEYWORD   IDENTIFIER  EQUALS   
+
+IF <condition> THEN <expresssion> ELIF <condition> THEN <expresion>
+
+FOR <var_name> = <start_value> TO <end_value> THEN <expresssion>
+
+WHILE <condition> THEN <expresion>
