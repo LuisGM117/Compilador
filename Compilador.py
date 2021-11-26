@@ -4,6 +4,7 @@ import sys
 import time
 import os
 
+'''
 welcome = "WELCOME TO LUIGUI LANGUAJE SUPER PRO VERSION"
 
 for char in welcome:
@@ -11,6 +12,8 @@ for char in welcome:
     sys.stdout.flush()
     time.sleep(0.1)
 print("\n")
+
+'''
 
 while True:
     text = input('$ ')

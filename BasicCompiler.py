@@ -143,6 +143,7 @@ class Position:
 
 
 #LEXER
+#MAKE TOKENS, IDENTIFIERS, COMPARISON OPERATORS
 class Lexer:
     def __init__(self, filename, text):
         self.filename = filename
