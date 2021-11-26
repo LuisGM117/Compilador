@@ -1,3 +1,17 @@
+declarar variable 
+
+VAR <name> = value 
+
+IF expr THEN 
+
+VAR price = IF age >= 18 THEN 40 ELSE 20
+
+
+
+declarar result = 1
 WHILE i < 10000 THEN VAR i = i + 1
+
+
+
 
 FOR i = 1 TO 6 THEN VAR result = result * i 

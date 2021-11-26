@@ -72,7 +72,17 @@ $ `IF <condition> THEN <expresssion> ELIF <condition> THEN <expresion>`
 
 **EJEMPLO**
 
+$ `VAR age = 18`
+
+$ `VAR price = IF age >= 18 THEN 40 ELSE 20`
+
+**FOR**
+
+$ `VAR result = 1`
+
 $ `FOR i = 1 TO 6 THEN VAR result = result * i`
+
+$ result
 
 
 **WHILE**
